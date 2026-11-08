@@ -1,0 +1,16 @@
+# Zdjęcia użytkowników
+shared_photos/
+
+# Środowisko wirtualne Python
+.venv/
+
+# Pliki tymczasowe Python
+__pycache__/
+*.py[cod]
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# Pliki konfiguracyjne z sekretami
+.env
