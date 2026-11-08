@@ -13,7 +13,7 @@ app = Flask(__name__)
 active_session_token = None
 active_transfer_folder = None
 active_session_last_activity = None
-SESSION_TIMEOUT = timedelta(seconds=15)
+SESSION_TIMEOUT = timedelta(seconds=120)
 
 def get_local_ip():
     connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -37,6 +37,13 @@ MAX_FILES = 20
 
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
+def get_session_expiration_timestamp():
+    if not active_session_last_activity:
+        return None
+
+    expiration_time = active_session_last_activity + SESSION_TIMEOUT
+
+    return expiration_time.timestamp()
 
 def is_session_valid(token):
     global active_session_last_activity
@@ -63,7 +70,11 @@ def home():
     transfer_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
     active_transfer_folder = UPLOAD_FOLDER / transfer_id
 
-    return render_template("index.html", token=active_session_token)
+    return render_template(
+        "index.html",
+        token=active_session_token,
+        expiration_timestamp=get_session_expiration_timestamp()
+    )
 
 @app.route("/qr")
 def generate_qr():
@@ -83,14 +94,15 @@ def generate_qr():
 @app.route("/upload/<token>", methods=["GET", "POST"])
 def upload(token):
     if not is_session_valid(token):
-        return "Sesja wygasła lub jest nieprawidłowa.", 403
+        return render_template("session_expired.html"), 403
 
     if request.method == "GET":
         return render_template(
             "index.html",
             token=active_session_token,
-            mobile_upload=True
-        )
+            mobile_upload=True,
+            expiration_timestamp=get_session_expiration_timestamp()
+    )
 
     photos = request.files.getlist("photos")
 
@@ -99,6 +111,7 @@ def upload(token):
             "index.html",
             token=active_session_token,
             mobile_upload=True,
+            expiration_timestamp=get_session_expiration_timestamp(),
             error_message="Nie wybrano żadnych zdjęć. Spróbuj ponownie."
         ), 400
 
@@ -107,6 +120,7 @@ def upload(token):
             "index.html",
             token=active_session_token,
             mobile_upload=True,
+            expiration_timestamp=get_session_expiration_timestamp(),
             error_message=f"Możesz przesłać maksymalnie {MAX_FILES} zdjęć jednocześnie."
         ), 400
 
@@ -158,6 +172,7 @@ def upload(token):
         mobile_upload=True,
         saved_count=saved_count,
         rejected_count=rejected_count,
+        expiration_timestamp=get_session_expiration_timestamp(),
         error_message=(
             f"Nie udało się przesłać {rejected_count} plików. "
             "Sprawdź ich format i rozmiar."

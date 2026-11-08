@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photo Transfer</title>
 </head>
-<body>
+<body data-expiration="{{ expiration_timestamp }}"> 
     <h1>Photo Transfer</h1>
+    <p id="session-timer">
+    Pozostały czas: <span id="countdown">--:--</span>
+    </p>
 
     {% if not mobile_upload %}
         <p>Zeskanuj kod QR telefonem, aby przesłać zdjęcia.</p>
@@ -34,5 +37,6 @@
             <button type="submit">Wyślij zdjęcia</button>
     </form>
 {% endif %}
+<script src="{{ url_for('static', filename='js/timer.js') }}" defer></script>
 </body>
 </html>
