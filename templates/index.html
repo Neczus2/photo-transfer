@@ -15,6 +15,9 @@
     {% if not mobile_upload %}
         <p>Zeskanuj kod QR telefonem, aby przesłać zdjęcia.</p>
         <img src="/qr" alt="Kod QR do przesyłania zdjęć">
+        <form action="/" method="GET" id="new-session-form" hidden>
+        <button type="submit">Rozpocznij nową sesję</button>
+    </form>
 
     {% elif saved_count is defined %}
     {% if error_message %}

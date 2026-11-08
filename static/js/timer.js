@@ -31,9 +31,14 @@ function updateTimer() {
             if (qrImage) {
                 qrImage.hidden = true;
             }
-        }
 
-        clearInterval(timerInterval);
+            // Pokazujemy przycisk rozpoczęcia nowej sesji.
+            const newSessionForm = document.getElementById("new-session-form");
+
+            if (newSessionForm) {
+                newSessionForm.hidden = false;
+            }
+        }
     }
 }
 
