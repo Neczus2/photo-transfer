@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, send_file
 from pathlib import Path
 from werkzeug.utils import secure_filename
 from PIL import Image, UnidentifiedImageError
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 import socket
 import qrcode
@@ -12,6 +12,8 @@ import secrets
 app = Flask(__name__)
 active_session_token = None
 active_transfer_folder = None
+active_session_last_activity = None
+SESSION_TIMEOUT = timedelta(seconds=15)
 
 def get_local_ip():
     connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -36,11 +38,27 @@ MAX_FILES = 20
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
 
+def is_session_valid(token):
+    global active_session_last_activity
+
+    if not active_session_token or not active_session_last_activity:
+        return False
+
+    if not secrets.compare_digest(token, active_session_token):
+        return False
+
+    if datetime.now() - active_session_last_activity > SESSION_TIMEOUT:
+        return False
+
+    return True
+
+
 @app.route("/")
 def home():
-    global active_session_token, active_transfer_folder
+    global active_session_token, active_transfer_folder, active_session_last_activity
 
     active_session_token = secrets.token_urlsafe(16)
+    active_session_last_activity = datetime.now()
 
     transfer_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
     active_transfer_folder = UPLOAD_FOLDER / transfer_id
@@ -64,15 +82,15 @@ def generate_qr():
 
 @app.route("/upload/<token>", methods=["GET", "POST"])
 def upload(token):
-    if not active_session_token or not secrets.compare_digest(token, active_session_token):
+    if not is_session_valid(token):
         return "Sesja wygasła lub jest nieprawidłowa.", 403
 
     if request.method == "GET":
         return render_template(
-        "index.html",
-        token=active_session_token,
-        mobile_upload=True
-    )
+            "index.html",
+            token=active_session_token,
+            mobile_upload=True
+        )
 
     photos = request.files.getlist("photos")
 
@@ -158,6 +176,6 @@ def file_too_large(error):
 
 
 if __name__ == "__main__":
-       print(f"Adres dla telefonu: http://{get_local_ip()}:5000")
+    print(f"Adres dla telefonu: http://{get_local_ip()}:5000")
 
-       app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
