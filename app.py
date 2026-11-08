@@ -77,10 +77,20 @@ def upload(token):
     photos = request.files.getlist("photos")
 
     if not photos or all(not photo.filename for photo in photos):
-        return "Nie wybrano zdjęć.", 400
+        return render_template(
+            "index.html",
+            token=active_session_token,
+            mobile_upload=True,
+            error_message="Nie wybrano żadnych zdjęć. Spróbuj ponownie."
+        ), 400
 
     if len(photos) > MAX_FILES:
-        return f"Możesz przesłać maksymalnie {MAX_FILES} zdjęć.", 400
+        return render_template(
+            "index.html",
+            token=active_session_token,
+            mobile_upload=True,
+            error_message=f"Możesz przesłać maksymalnie {MAX_FILES} zdjęć jednocześnie."
+        ), 400
 
     saved_count = 0
     rejected_count = 0
@@ -129,13 +139,22 @@ def upload(token):
         token=active_session_token,
         mobile_upload=True,
         saved_count=saved_count,
-        rejected_count=rejected_count
+        rejected_count=rejected_count,
+        error_message=(
+            f"Nie udało się przesłać {rejected_count} plików. "
+            "Sprawdź ich format i rozmiar."
+            if rejected_count > 0 else None
+        )
     )
-
 
 @app.errorhandler(413)
 def file_too_large(error):
-    return "Przesłane pliki przekraczają limit 100 MB.", 413
+    return render_template(
+        "index.html",
+        token=active_session_token,
+        mobile_upload=True,
+        error_message="Łączny rozmiar przesyłanych plików przekracza limit 100 MB. Wybierz mniej zdjęć."
+    ), 413
 
 
 if __name__ == "__main__":

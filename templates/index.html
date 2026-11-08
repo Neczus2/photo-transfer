@@ -14,6 +14,9 @@
         <img src="/qr" alt="Kod QR do przesyłania zdjęć">
 
     {% elif saved_count is defined %}
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
         <h2>Przesyłanie zakończone!</h2>
         <p>Przesłano zdjęć: {{ saved_count }}</p>
         <p>Odrzucono zdjęć: {{ rejected_count }}</p>
@@ -23,6 +26,9 @@
     </form>
 
     {% else %}
+        {% if error_message %}
+            <p>{{ error_message }}</p>
+        {% endif %}
         <form action="/upload/{{ token }}" method="POST" enctype="multipart/form-data">
             <input type="file" name="photos" accept="image/*" multiple>
             <button type="submit">Wyślij zdjęcia</button>
