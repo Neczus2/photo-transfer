@@ -1,13 +1,18 @@
-
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from pathlib import Path
 from werkzeug.utils import secure_filename
 from PIL import Image, UnidentifiedImageError
 from datetime import datetime
 from uuid import uuid4
 import socket
+import qrcode
+from io import BytesIO
+import secrets
 
 app = Flask(__name__)
+active_session_token = None
+active_transfer_folder = None
+
 def get_local_ip():
     connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -33,11 +38,42 @@ app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    global active_session_token, active_transfer_folder
 
+    active_session_token = secrets.token_urlsafe(16)
 
-@app.route("/upload", methods=["POST"])
-def upload():
+    transfer_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+    active_transfer_folder = UPLOAD_FOLDER / transfer_id
+
+    return render_template("index.html", token=active_session_token)
+
+@app.route("/qr")
+def generate_qr():
+    if not active_session_token:
+        return "Brak aktywnej sesji", 404
+
+    address = f"http://{get_local_ip()}:5000/upload/{active_session_token}"
+
+    qr_image = qrcode.make(address)
+
+    image_buffer = BytesIO()
+    qr_image.save(image_buffer, format="PNG")
+    image_buffer.seek(0)
+
+    return send_file(image_buffer, mimetype="image/png")
+
+@app.route("/upload/<token>", methods=["GET", "POST"])
+def upload(token):
+    if not active_session_token or not secrets.compare_digest(token, active_session_token):
+        return "Sesja wygasła lub jest nieprawidłowa.", 403
+
+    if request.method == "GET":
+        return render_template(
+        "index.html",
+        token=active_session_token,
+        mobile_upload=True
+    )
+
     photos = request.files.getlist("photos")
 
     if not photos or all(not photo.filename for photo in photos):
@@ -48,9 +84,6 @@ def upload():
 
     saved_count = 0
     rejected_count = 0
-
-    transfer_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-    transfer_folder = UPLOAD_FOLDER / transfer_id
 
     for photo in photos:
         if not photo.filename:
@@ -86,13 +119,17 @@ def upload():
 
         filename = f"{uuid4().hex[:8]}_{filename}"
 
-        transfer_folder.mkdir(parents=True, exist_ok=True)
-        photo.save(transfer_folder / filename)
+        active_transfer_folder.mkdir(parents=True, exist_ok=True)
+        photo.save(active_transfer_folder / filename)
 
         saved_count += 1
 
-    return (
-        f"Przesłano: {saved_count}. Odrzucono: {rejected_count}."
+    return render_template(
+        "index.html",
+        token=active_session_token,
+        mobile_upload=True,
+        saved_count=saved_count,
+        rejected_count=rejected_count
     )
 
 

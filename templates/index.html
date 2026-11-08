@@ -1,20 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Transfer"</title>
-  </head>
-  <body>
+    <title>Photo Transfer</title>
+</head>
+<body>
     <h1>Photo Transfer</h1>
-    <p>Przesyłaj zdjęcia z telefonu do komputera</p>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input
-            type="file"
-            name="photos"
-            accept="image/*"
-            multiple
-        >
-        <button type=
-  </body>
+
+    {% if not mobile_upload %}
+        <p>Zeskanuj kod QR telefonem, aby przesłać zdjęcia.</p>
+        <img src="/qr" alt="Kod QR do przesyłania zdjęć">
+
+    {% elif saved_count is defined %}
+        <h2>Przesyłanie zakończone!</h2>
+        <p>Przesłano zdjęć: {{ saved_count }}</p>
+        <p>Odrzucono zdjęć: {{ rejected_count }}</p>
+
+    <form action="/upload/{{ token }}" method="GET">
+        <button type="submit">Dodaj kolejne zdjęcia</button>
+    </form>
+
+    {% else %}
+        <form action="/upload/{{ token }}" method="POST" enctype="multipart/form-data">
+            <input type="file" name="photos" accept="image/*" multiple>
+            <button type="submit">Wyślij zdjęcia</button>
+    </form>
+{% endif %}
+</body>
 </html>
