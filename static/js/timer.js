@@ -4,6 +4,7 @@ const expirationTimestamp = Number(
 
 const countdownElement = document.getElementById("countdown");
 const timerElement = document.getElementById("session-timer");
+let timerInterval = null;
 
 function updateTimer() {
     const currentTime = Date.now() / 1000;
@@ -19,6 +20,8 @@ function updateTimer() {
         `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
     if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
         timerElement.textContent = "Sesja wygasła";
 
         // Na telefonie odświeżamy stronę, aby wyświetlić komunikat o wygaśnięciu.
@@ -43,6 +46,6 @@ function updateTimer() {
 }
 
 if (Number.isFinite(expirationTimestamp) && countdownElement && timerElement) {
+    timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
 }

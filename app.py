@@ -8,6 +8,7 @@ import socket
 import qrcode
 from io import BytesIO
 import secrets
+import warnings
 
 app = Flask(__name__)
 active_session_token = None
@@ -34,6 +35,8 @@ ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"}
 
 MAX_FILE_SIZE = 15 * 1024 * 1024
 MAX_FILES = 20
+MAX_IMAGE_DIMENSION = 12000
+MAX_IMAGE_PIXELS = 40_000_000
 
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
@@ -81,6 +84,9 @@ def generate_qr():
     if not active_session_token:
         return "Brak aktywnej sesji", 404
 
+    if not is_session_valid(active_session_token):
+        return "Sesja wygasła", 410
+
     address = f"http://{get_local_ip()}:5000/upload/{active_session_token}"
 
     qr_image = qrcode.make(address)
@@ -102,7 +108,7 @@ def upload(token):
             token=active_session_token,
             mobile_upload=True,
             expiration_timestamp=get_session_expiration_timestamp()
-    )
+        )
 
     photos = request.files.getlist("photos")
 
@@ -126,6 +132,7 @@ def upload(token):
 
     saved_count = 0
     rejected_count = 0
+    save_error = False
 
     for photo in photos:
         if not photo.filename:
@@ -140,16 +147,33 @@ def upload(token):
                 rejected_count += 1
                 continue
 
-            image = Image.open(photo.stream)
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(photo.stream) as image:
 
-            if image.format not in ALLOWED_FORMATS:
-                rejected_count += 1
-                continue
+                    if image.format not in ALLOWED_FORMATS:
+                        rejected_count += 1
+                        continue
 
-            image.verify()
+                    width, height = image.size
+                    if (
+                        width > MAX_IMAGE_DIMENSION
+                        or height > MAX_IMAGE_DIMENSION
+                        or width * height > MAX_IMAGE_PIXELS
+                    ):
+                        rejected_count += 1
+                        continue
+
+                    image.verify()
             photo.stream.seek(0)
 
-        except (UnidentifiedImageError, OSError, ValueError):
+        except (
+            UnidentifiedImageError,
+            Image.DecompressionBombError,
+            Image.DecompressionBombWarning,
+            OSError,
+            ValueError,
+        ):
             rejected_count += 1
             continue
 
@@ -159,10 +183,37 @@ def upload(token):
             rejected_count += 1
             continue
 
-        filename = f"{uuid4().hex[:8]}_{filename}"
+        try:
+            active_transfer_folder.mkdir(parents=True, exist_ok=True)
+            file_saved = False
 
-        active_transfer_folder.mkdir(parents=True, exist_ok=True)
-        photo.save(active_transfer_folder / filename)
+            for _ in range(5):
+                candidate_filename = f"{uuid4().hex[:16]}_{filename}"
+                destination = active_transfer_folder / candidate_filename
+                created = False
+
+                try:
+                    with destination.open("xb") as output_file:
+                        created = True
+                        photo.stream.seek(0)
+                        photo.save(output_file)
+                    file_saved = True
+                    break
+                except FileExistsError:
+                    continue
+                except OSError:
+                    if created:
+                        destination.unlink(missing_ok=True)
+                    raise
+
+            if not file_saved:
+                save_error = True
+                rejected_count += 1
+                continue
+        except OSError:
+            save_error = True
+            rejected_count += 1
+            continue
 
         saved_count += 1
 
@@ -173,11 +224,11 @@ def upload(token):
         saved_count=saved_count,
         rejected_count=rejected_count,
         expiration_timestamp=get_session_expiration_timestamp(),
-        error_message=(
+        error_message=((
             f"Nie udało się przesłać {rejected_count} plików. "
             "Sprawdź ich format i rozmiar."
             if rejected_count > 0 else None
-        )
+        ) or '') + (' Nie udało się zapisać części zdjęć na dysku.' if save_error else '') or None
     )
 
 @app.errorhandler(413)
@@ -186,6 +237,7 @@ def file_too_large(error):
         "index.html",
         token=active_session_token,
         mobile_upload=True,
+        expiration_timestamp=get_session_expiration_timestamp(),
         error_message="Łączny rozmiar przesyłanych plików przekracza limit 100 MB. Wybierz mniej zdjęć."
     ), 413
 
@@ -193,4 +245,4 @@ def file_too_large(error):
 if __name__ == "__main__":
     print(f"Adres dla telefonu: http://{get_local_ip()}:5000")
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False, use_debugger=False)
