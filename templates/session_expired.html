@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sesja wygasła</title>
+    <meta name="theme-color" content="#0B2E33">
+    <title>Sesja wygasła · Photo Transfer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=1) }}">
 </head>
 <body>
-    <h1>Sesja wygasła</h1>
-
-    <p>Minął czas na przesyłanie zdjęć.</p>
-
-    <p>Wróć do komputera i zeskanuj nowy kod QR, aby rozpocząć kolejną sesję.</p>
+    <main class="app-shell expired-page">
+        <header class="page-header">
+            <h1>Sesja wygasła</h1>
+        </header>
+        <section class="content content-expired">
+            <p class="supporting-copy">Minął czas na przesyłanie zdjęć.</p>
+            <p class="supporting-copy">Wróć do komputera i zeskanuj nowy kod QR, aby rozpocząć kolejną sesję.</p>
+        </section>
+    </main>
 </body>
 </html>

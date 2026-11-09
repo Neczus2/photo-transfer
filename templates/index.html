@@ -1,45 +1,62 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0B2E33">
     <title>Photo Transfer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=1) }}">
 </head>
-<body data-expiration="{{ expiration_timestamp }}"> 
-    <h1>Photo Transfer</h1>
-    <p id="session-timer">
-    Pozostały czas: <span id="countdown">--:--</span>
-    </p>
+<body data-expiration="{{ expiration_timestamp }}">
+    <main class="app-shell">
+        <header class="page-header">
+            <h1>Photo Transfer</h1>
+        </header>
 
-    {% if not mobile_upload %}
-        <p>Zeskanuj kod QR telefonem, aby przesłać zdjęcia.</p>
-        <img src="/qr" alt="Kod QR do przesyłania zdjęć">
-        <form action="/" method="GET" id="new-session-form" hidden>
-        <button type="submit">Rozpocznij nową sesję</button>
-    </form>
+        {% if not mobile_upload %}
+            <section class="content content-desktop" aria-label="Połączenie z telefonem">
+                <img class="qr-image" src="/qr" alt="Kod QR do przesyłania zdjęć">
+                <p id="session-timer" class="session-timer" role="timer" aria-live="off">
+                    Pozostały czas: <span id="countdown">--:--</span>
+                </p>
+                <p class="supporting-copy">Zeskanuj kod QR telefonem, aby przesłać zdjęcia.</p>
+                <form action="/" method="GET" id="new-session-form" hidden>
+                    <button type="submit">Rozpocznij nową sesję</button>
+                </form>
+            </section>
 
-    {% elif saved_count is defined %}
-    {% if error_message %}
-        <p>{{ error_message }}</p>
-    {% endif %}
-        <h2>Przesyłanie zakończone!</h2>
-        <p>Przesłano zdjęć: {{ saved_count }}</p>
-        <p>Odrzucono zdjęć: {{ rejected_count }}</p>
+        {% else %}
+            <p id="session-timer" class="session-timer" role="timer" aria-live="off">
+                Pozostały czas: <span id="countdown">--:--</span>
+            </p>
 
-    <form action="/upload/{{ token }}" method="GET">
-        <button type="submit">Dodaj kolejne zdjęcia</button>
-    </form>
-
-    {% else %}
-        {% if error_message %}
-            <p>{{ error_message }}</p>
+            {% if saved_count is defined %}
+                <section class="content content-result" aria-live="polite">
+                    {% if error_message %}
+                        <p class="feedback feedback-error">{{ error_message }}</p>
+                    {% endif %}
+                    <h2>Przesyłanie zakończone</h2>
+                    <p class="result-count">Przesłano zdjęć: <strong>{{ saved_count }}</strong></p>
+                    <p class="result-count">Odrzucono zdjęć: <strong>{{ rejected_count }}</strong></p>
+                    <form action="/upload/{{ token }}" method="GET" class="action-form">
+                        <button type="submit">Dodaj kolejne zdjęcia</button>
+                    </form>
+                </section>
+            {% else %}
+                <section class="content content-upload">
+                    <p class="supporting-copy">Wybierz zdjęcia, które chcesz przesłać.</p>
+                    {% if error_message %}
+                        <p class="feedback feedback-error" role="alert">{{ error_message }}</p>
+                    {% endif %}
+                    <form action="/upload/{{ token }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                        <label class="file-label" for="photo-files">Wybierz zdjęcia</label>
+                        <input id="photo-files" type="file" name="photos" accept="image/*" multiple>
+                        <button type="submit">Wyślij zdjęcia</button>
+                    </form>
+                </section>
+            {% endif %}
         {% endif %}
-        <form action="/upload/{{ token }}" method="POST" enctype="multipart/form-data">
-            <input type="file" name="photos" accept="image/*" multiple>
-            <button type="submit">Wyślij zdjęcia</button>
-    </form>
-{% endif %}
-<script src="{{ url_for('static', filename='js/timer.js') }}" defer></script>
+    </main>
+    <script src="{{ url_for('static', filename='js/timer.js') }}" defer></script>
 </body>
 </html>

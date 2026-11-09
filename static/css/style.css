@@ -1,0 +1,231 @@
+:root {
+    color-scheme: dark;
+    --color-background: #0B2E33;
+    --color-accent: #4F7C82;
+    --color-highlight: #B8E3E9;
+    --color-muted: #93B1B5;
+    --color-text: #F2F8F8;
+    --color-error: #FFD2CC;
+    --color-error-background: #3B3030;
+    --content-width: 30rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 320px;
+    min-height: 100%;
+    background: var(--color-background);
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100svh;
+    margin: 0;
+    padding: 2rem 1.25rem;
+    display: grid;
+    place-items: center;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.55;
+    text-align: center;
+}
+
+*[hidden] {
+    display: none !important;
+}
+
+.app-shell {
+    width: min(100%, var(--content-width));
+    margin: auto;
+}
+
+.page-header {
+    margin-bottom: 1.25rem;
+}
+
+h1 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(2.15rem, 8vw, 3.25rem);
+    font-weight: 650;
+    letter-spacing: -0.055em;
+    line-height: 1.08;
+}
+
+.session-timer {
+    margin: 0 auto 1.5rem;
+    color: var(--color-highlight);
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+#countdown {
+    display: inline-block;
+    min-width: 3.2em;
+    margin-left: 0.2em;
+    color: var(--color-text);
+}
+
+.content {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+}
+
+.content p {
+    margin: 0;
+}
+
+.qr-image {
+    display: block;
+    width: min(64vw, 15rem);
+    height: auto;
+    padding: 0.6rem;
+    border-radius: 0.5rem;
+    background: #fff;
+}
+
+.supporting-copy {
+    max-width: 28rem;
+    color: var(--color-muted);
+}
+
+.content-upload {
+    gap: 1.1rem;
+}
+
+.upload-form,
+.action-form {
+    width: 100%;
+    display: grid;
+    justify-items: stretch;
+    gap: 0.9rem;
+}
+
+.file-label {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+input[type="file"] {
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.45rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 0.5rem;
+    background: #103a40;
+    color: var(--color-text);
+    text-align: left;
+}
+
+input[type="file"]::file-selector-button {
+    min-height: 2.25rem;
+    margin-right: 0.7rem;
+    padding: 0.4rem 0.75rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: var(--color-accent);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+button {
+    min-height: 3rem;
+    padding: 0.7rem 1.1rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    background: var(--color-accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 120ms ease, transform 120ms ease;
+}
+
+button:hover {
+    background: #5E8B91;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid var(--color-highlight);
+    outline-offset: 3px;
+}
+
+.feedback {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 0.5rem;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.feedback-error {
+    background: var(--color-error-background);
+    color: var(--color-error);
+}
+
+.content-result h2 {
+    margin: 0.2rem 0 0;
+    color: var(--color-highlight);
+    font-size: 1.4rem;
+    line-height: 1.25;
+}
+
+.result-count {
+    color: var(--color-muted);
+}
+
+.result-count strong {
+    margin-left: 0.25rem;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.content-expired {
+    gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 1.5rem 1.1rem;
+    }
+
+    .page-header {
+        margin-bottom: 1rem;
+    }
+
+    .session-timer {
+        margin-bottom: 1.25rem;
+        font-size: 1rem;
+    }
+
+    .qr-image {
+        width: min(62vw, 13rem);
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
