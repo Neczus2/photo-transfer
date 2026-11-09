@@ -33,7 +33,7 @@ def generate_qr():
         return "Brak aktywnej sesji", 404
 
     if not session.is_session_valid(session.active_session_token):
-        return "Sesja wygasĹ‚a", 410
+        return "Sesja wygasła", 410
 
     address = f"http://{get_local_ip()}:5000/upload/{session.active_session_token}"
     qr_image = qrcode.make(address)

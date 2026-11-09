@@ -1,19 +1,42 @@
-# Zdjęcia użytkowników
-shared_photos/
-
-# Środowisko wirtualne Python
+# Python virtual environments
 .venv/
+venv/
+env/
+ENV/
 
-# Pliki tymczasowe Python
+# Python cache and temporary files
 __pycache__/
 *.py[cod]
+*$py.class
 
-# Pliki systemowe
+# User uploads
+shared_photos/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Tool and test caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+tempCodeRunnerFile.py
+
+# Operating system files
 .DS_Store
 Thumbs.db
-
-# Pliki konfiguracyjne z sekretami
-.env
-
-# Tymczasowe pliki VS Code / Code Runner
-tempCodeRunnerFile.py
+Desktop.ini
