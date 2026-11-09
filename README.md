@@ -69,16 +69,16 @@ The terminal prints the local address to use on the phone. Open it in a phone br
 
 ### 1. Desktop - Active session and QR code
 
-![Desktop view with QR code](photo/1.png)
+![Desktop view with QR code](photos/1.png)
 
 ### 2. Mobile - Photo upload
 
-![Mobile upload page](photo/2.png)
+![Mobile upload page](photos/2.png)
 
 ### 3. Mobile - Upload completed
 
-![Mobile upload confirmation](photo/3.png)
+![Mobile upload confirmation](photos/3.png)
 
 ### 4. Desktop - Session expired
 
-![Desktop session expired screen](photo/4.png)
+![Desktop session expired screen](photos/4.png)
