@@ -63,3 +63,22 @@ The terminal prints the local address to use on the phone. Open it in a phone br
 - The app is intended for a trusted local Wi-Fi network. It uses HTTP without HTTPS or authentication. Anyone with access to the local network and the active upload link may be able to submit files.
 - Old photo folders are not removed automatically. Remove them manually when they are no longer needed.
 - In the exceptional case of a write error followed by a failure to remove the partial file, an incomplete file may remain in the destination folder.
+
+
+## Screenshots
+
+### 1. Desktop - Active session and QR code
+
+![Desktop view with QR code](photo/1.png)
+
+### 2. Mobile - Photo upload
+
+![Mobile upload page](photo/2.png)
+
+### 3. Mobile - Upload completed
+
+![Mobile upload confirmation](photo/3.png)
+
+### 4. Desktop - Session expired
+
+![Desktop session expired screen](photo/4.png)
